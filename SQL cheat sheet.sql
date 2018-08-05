@@ -1,5 +1,7 @@
+-- Last updated : 2018-08-05
+
 				--========== ELEMENTARY COMMANDS ==========--
-				
+{
 -- SELECT. Display all rows in a table
 	SELECT * FROM table1
 	
@@ -52,8 +54,8 @@
 	SET Col1 = t2.Col1, 
 		Col2 = t2.Col2 
 	FROM 	(
-			SELECT ID, Col1, Col2 
-			FROM table2
+				SELECT ID, Col1, Col2 
+				FROM table2
 			) AS t2
 	WHERE t2.ID = table1.ID
 	
@@ -151,6 +153,10 @@
 		column3 INT FOREIGN KEY REFERENCES table2(column3)
 	)
 	
+-- CHECK ALL FOREIGN KEYS THAT BELONG TO A TABLE
+	SELECT * FROM sys.foreign_keys
+	WHERE referenced_object_id = object_id('table1')
+	
 -- CREATE A FOREIGN KEY
 ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 
@@ -170,15 +176,24 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 	CREATE TABLE #Table1 												-- Visible only to the connection that creates it, and are deleted when the connection is closed.
 	CREATE TABLE ##Table1 												-- Visible to everyone, and are deleted when the server is restarted.
 	
--- Check if a physical table exists
+-- Check if a table exists (if table exists)
 	IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'Table1') AND type in (N'U'))
 	
 -- Check if a column exists (if column exists)
-IF EXISTS(SELECT * FROM sys.columns WHERE Name = N'Column1' AND Object_ID = Object_ID(N'Schema1.Table1'))
+	IF EXISTS(SELECT * FROM sys.columns WHERE Name = N'Column1' AND Object_ID = Object_ID(N'Schema1.Table1'))
+	
+-- Check if a constraint exists
+	IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[Constraint1]') AND type = 'D')
 
 -- Check of a temporary table exists (drop if exists)
 	IF OBJECT_ID('tempdb..#Table') IS NOT NULL 
 		DROP TABLE #Table
+		
+-- Renaming objects.
+	-- Tables
+	EXEC sp_rename 'schema1.table1', 'table2'
+	-- Columns
+	EXEC sp_RENAME 'table1.OldColumn' , 'NewColumn', 'COLUMN'
 	
 -- CTEs - Common table expressions. Can be used to combine several tables and filter from the resulting table at the same time. Kind of similar to derived queries - SELECT * FROM (SELECT * FROM table1) AS t1
 	;WITH cte AS
@@ -663,7 +678,7 @@ ORDER BY SJH.run_date desc
 	CONVERT(expression, data_type)
 	
 -- SUBSTRING. Used to return a portion of string.
-	SUBSTRING(string, start_position, length)
+	SUBSTRING(string, start_position, {length})
 	
 -- RTRIM / LTRIM. Used to truncate string of empty spaces on the right and left.
 	RTRIM(LTRIM(string1))
@@ -860,6 +875,12 @@ ORDER BY SJH.run_date desc
 	SELECT column_name, table_name 
 	FROM INFORMATION_SCHEMA.COLUMNS 
 	WHERE column_name LIKE '%column1%'
+	
+-- Search for text in a group of objects (search stored procedures)
+	SELECT  OBJECT_NAME(id), text
+	FROM syscomments 
+	WHERE text LIKE '%2018-07-20%'
+	ORDER BY OBJECT_NAME(id)
 
 -- Search for a particular column in a particular table
 	SELECT name FROM
@@ -867,6 +888,11 @@ ORDER BY SJH.run_date desc
 		FROM sys.columns
 		WHERE object_id = OBJECT_ID('table1')) AS name
 	WHERE name LIKE '%column1%'
+	
+-- Search for stored procedures in a database (display stored procedures, display all stored procedures)
+	SELECT name, type
+	FROM dbo.sysobjects
+	WHERE (type = 'P')
 
 -- Show duplicate entries in a table
 	SELECT COUNT(column1) AS [Duplicate entries], column2
@@ -909,15 +935,14 @@ ORDER BY SJH.run_date desc
 	
 	
 	
-	
 
 
 				--========== CUSTOM FUCNTIONS ==========--
 
 
 
-	
-	
+				--========== KNOWN ISSUES ==========--
+-- NOT IN - the not in operator fails when filtering a list of strings that contains a NULL. Make sure to exclude any nulls inside a NOT IN
 	
 	
 	
