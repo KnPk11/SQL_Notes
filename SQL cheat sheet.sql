@@ -1,7 +1,6 @@
--- Last updated : 2018-08-05
+-- Last update: 2018-11-12 13:00
 
-				--========== ELEMENTARY COMMANDS ==========--
-{
+				--========== COMMANDS ==========--
 -- SELECT. Display all rows in a table
 	SELECT * FROM table1
 	
@@ -27,6 +26,81 @@
 	FROM table1
 	ORDER BY column1/integer ASC/DESC
 	
+-- LIKE. Use with a WHERE clause to search for a specific pattern in a column. pattern can be: % - wildcard for matching any string of any length, _ - match a single character of a strign, [charlist] 
+-- sets and ranges of characters to match, [^charlist] or [!charlist] - match characters not specified in the brackets
+	SELECT * FROM table1
+	WHERE column1 LIKE 'pattern'
+
+-- IN. Allows specifying multiple values in a WHERE clause.
+	SELECT * FROM table1
+	WHERE column1 IN (value1, value2, ...)
+	
+-- BETWEEN. Select values within a range.
+	SELECT * FROM table1
+	WHERE column1 BETWEEN value1 AND value2
+
+-- AS. Used to temporarily rename a table or a column in a table
+	SELECT column1 AS [new column name]
+	FROM table1 AS [new table name]
+	
+-- JOIN. Join tables. Combine data from multiple tables based on a unifying criteria.
+	INNER JOIN (JOIN) 		-- returns all rows with at least one match in both tables
+	LEFT JOIN 				-- returns all rows from the left table, and the matched rows from the right table
+	RIGHT JOIN 				-- returns all rows from the right table, and the matched rows from the left table
+	FULL JOIN 				-- returns all rows with a match in either of the tables
+	CROSS JOIN				-- joins tables without a join condition, returning all possible combinations of the tables. (Cartesian join)
+
+	SELECT column1, column2,...
+	FROM table1 AS t1
+	INNER JOIN table2 AS t2
+	ON t1.column_name=t2.column_name;
+	
+-- CROSS APPLY. Similar to INNER JOIN, returns all values from the left side table which produce a result in the right side table. Cross apply is like a left join.
+	SELECT * FROM table1 AS t1 
+	CROSS APPLY 
+		( 
+		SELECT * FROM Table2 AS t2 
+		WHERE t1.column1 = t2.column1
+		) AS a
+	
+	-- Example
+	SELECT t2.Item, *
+	FROM table1 AS t1
+	CROSS APPLY dbo.FunctionDelimitedSplit(DelimitedString,';') AS t2
+
+-- OUTER APPLY. Similar to LEFT JOIN
+	SELECT * FROM table1 AS t1 
+	OUTER APPLY 
+		( 
+		SELECT * FROM Table2 AS t2 
+		WHERE t1.column1 = t2.column1
+		) AS a
+	
+-- UNION / UNION ALL. Combines the results of two or more SELECT statements. UNION only shows distinct values, UNION ALL shows all values (including duplicates)
+	SELECT column1 FROM table1
+	UNION (ALL)
+	SELECT column1 FROM table2
+	
+-- INTERSECT. Similar to UNION, but selects value only if it appears in both statements.
+	SELECT column1 FROM table1
+	INTERSECT
+	SELECT column1 FROM table2
+
+-- EXCEPT. Returns all rows in the first SELECT statement that are not returned by the second SELECT statement.
+	SELECT column1
+	FROM table1
+	WHERE condition1
+	EXCEPT
+	SELECT column1
+	FROM table2
+	WHERE condition2
+	
+-- CREATE DATABASE. Create a database
+	CREATE DATABASE database1
+	
+-- CREATE TABLE. Create a table.
+	CREATE TABLE table1(column1 datatype, column2 datatype,...)
+	
 -- INSERT INTO. Inserts values into a table. Selects data from one table and inserts it into an existing table. None of the existing data in the target table is affected.
 	INSERT INTO table1 (column1, column2, column3)
 	VALUES (value1, value2,...), (value1#2, value2#2,...) / SELECT * FROM table1
@@ -38,6 +112,11 @@
 
 -- IDENTITY_INSERT. Allows copying identity values.
 	SET IDENTITY_INSERT [database1].[schema1].[table1] ON
+	
+-- SELECT INTO. Selects data from one table and inserts it into a new table. Run this on the destination server. If not working, need to link the two servers.  (Copy table) Backup table.
+-- On the destination server go to Server Objects -> right click "Linked Servers" -> New Linked Server
+	SELECT * INTO table2
+	FROM [server].[database].[table1]
 
 -- UPDATE. Change specific records
 	UPDATE table1
@@ -59,6 +138,14 @@
 			) AS t2
 	WHERE t2.ID = table1.ID
 	
+-- ALTER. Change data format of a column, add a new column, delete a column or change its data type
+	ALTER TABLE table1
+	ALTER COLUMN column1 data_type
+	ALTER COLUMN column2 SET DEFAULT 'value'
+	
+	ALTER TABLE table1
+	ADD column2 data_type / DROP COLUMN column2 / ALTER COLUMN column2 data_type
+	
 -- DELETE FROM. Delete rows in a table
 	DELETE FROM table1
 	WHERE column1 = value1
@@ -69,68 +156,23 @@
 	INNER JOIN Table2 AS t2 ON t1.Col1 = t2.Col1
 	WHERE t2.Col3 = Condition1
 	
--- LIKE. Use with a WHERE clause to search for a specific pattern in a column. pattern can be: % - wildcard for matching any string of any length, _ - match a single character of a strign, [charlist] 
--- sets and ranges of characters to match, [^charlist] or [!charlist] - match characters not specified in the brackets
-	SELECT * FROM table1
-	WHERE column1 LIKE 'pattern'
+-- DELETE. Deleats a table
+	DELETE TABLE table1
+	
+-- TRUNCATE. Clear the table of data
+	TRUNCATE TABLE table1
+	
+-- DROP. Drops a table, view, constraint, index, database.
+	DROP TABLE table1
+	
+	ALTER TABLE table1
+	DROP VIEW view1
+	
+	ALTER COLUMN column2 DROP DEFAULT
+	DROP INDEX index_name ON table1
+	
+	DROP DATABASE database1
 
--- IN. Allows specifying multiple values in a WHERE clause.
-	SELECT * FROM table1
-	WHERE column1 IN (value1, value2, ...)
-	
--- BETWEEN. Select values within a range.
-	SELECT * FROM table1
-	WHERE column1 BETWEEN value1 AND value2
-
--- AS. Used to temporarily rename a table or a column in a table
-	SELECT column1 AS [new column name]
-	FROM table1 AS [new table name]
-	
--- JOIN. Combine data from multiple tables based on a unifying criteria.
-	INNER JOIN (JOIN): 				-- returns all rows with at least one match in both tables
-	LEFT JOIN: 					-- returns all rows from the left table, and the matched rows from the right table
-	RIGHT JOIN: 				-- returns all rows from the right table, and the matched rows from the left table
-	FULL JOIN: 					-- returns all rows with a match in one of the tables
-	CROSS JOIN:					-- joins tables without a join condition, returning all possible combinations of the tables. (Cartesian join)
-
-	SELECT column1, column2,...
-	FROM table1 AS t1
-	INNER JOIN table2 AS t2
-	ON t1.column_name=t2.column_name;
-	
--- UNION / UNION ALL. Combines the results of two or more SELECT statements. UNION only shows distinct values, UNION ALL shows all values (including duplicates)
-	SELECT column1 FROM table1
-	UNION
-	SELECT column1 FROM table2
-	
--- INTERSECT. Similar to UNION, but selects value only if it appears in both statements.
-	SELECT column1 FROM table1
-	INTERSECT
-	SELECT column1 FROM table2
-	
--- APPLY / CROSS APPLY. Similar to JOIN, returns all values from the left side table which produce a result in the right side table. Cross apply is like a left join.
-	SELECT * 
-	FROM table1 AS t1
-	CROSS APPLY (
-	  SELECT TOP 5 * 
-	  FROM table2 AS t2 
-	  WHERE t1.col1 = t2.col1 
-	  ORDER BY t2.col2 DESC) AS t2
-	
--- EXCEPT. Returns all rows in the first SELECT statement that are not returned by the second SELECT statement.
-	SELECT column1
-	FROM table1
-	WHERE condition1
-	EXCEPT
-	SELECT column1
-	FROM table2
-	WHERE condition2
-	
--- SELECT INTO. Selects data from one table and inserts it into a new table. Run this on the destination server. If not working, need to link the two servers.  (Copy table) Backup table.
--- On the destination server go to Server Objects -> right click "Linked Servers" -> New Linked Server
-	SELECT * INTO table2
-	FROM [server].[database].[table1]
-	
 -- COLLATING ERRORS
 --Each database has its own collation which "provides sorting rules, case, and accent sensitivity properties for your --data" (from http://technet.microsoft.com/en-us/library/ms143726.aspx) and applies to columns with textual data types, e.g. VARCHAR, CHAR, NVARCHAR, etc. When --two databases have differing collations, you cannot compare text columns with an operator like equals (=) without addressing the conflict between the two --disparate collations.
 	SELECT * FROM table1 AS t1
@@ -138,35 +180,6 @@
 	ON t1.column1 = t2.column1 COLLATE [language] (eg. Latin1_General_CI_AS)
 	
 	SELECT col1 COLLATE [language] (eg. Latin1_General_CI_AS) FROM table1
-	
--- CREATE DATABASE. Create a database
-	CREATE DATABASE database1
-	
--- CREATE TABLE. Create a table.
-	CREATE TABLE table1(column1 datatype, column2 datatype,...)
-	
--- COLUMN CONSTRAINTS. Tells us what to do in case no value is passed in an insert statement
-	CREATE TABLE table1
-	(
-		column1 INT NOT NULL,
-		column2 VARCHAR(255) DEFAULT 'text'
-		column3 INT FOREIGN KEY REFERENCES table2(column3)
-	)
-	
--- CHECK ALL FOREIGN KEYS THAT BELONG TO A TABLE
-	SELECT * FROM sys.foreign_keys
-	WHERE referenced_object_id = object_id('table1')
-	
--- CREATE A FOREIGN KEY
-ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
-
--- Constraints. Specifies rules for the data in a table. Breaking them aborts data entry action
-	NOT NULL 				-- A column cannot be NULL
-	UNIQUE 					-- Each row for a column must have a unique value
-	PRIMARY KEY 			-- A combination of NOT NULL and UNIQUE. Ensures that a column (or combination of two or more columns) have a unique identity which helps to find a particular record in a table more easily and quickly
-	FOREIGN KEY 			-- Ensure the referential integrity of the data in one table to match values in another table
-	CHECK 					-- Ensures that the value in a column meets a specific condition
-	DEFAULT 				-- Specifies a default value for a column
 	
 -- DECLARE @. Declares a variable
 	DECLARE @variable data_type = value
@@ -188,34 +201,30 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 -- Check of a temporary table exists (drop if exists)
 	IF OBJECT_ID('tempdb..#Table') IS NOT NULL 
 		DROP TABLE #Table
-		
--- Renaming objects.
-	-- Tables
-	EXEC sp_rename 'schema1.table1', 'table2'
-	-- Columns
-	EXEC sp_RENAME 'table1.OldColumn' , 'NewColumn', 'COLUMN'
-	
--- CTEs - Common table expressions. Can be used to combine several tables and filter from the resulting table at the same time. Kind of similar to derived queries - SELECT * FROM (SELECT * FROM table1) AS t1
-	;WITH cte AS
+
+-- Constraints. Specifies rules for the data in a table. Breaking them aborts data entry action
+	NOT NULL 				-- A column cannot be NULL
+	UNIQUE 					-- Each row for a column must have a unique value
+	PRIMARY KEY 			-- A combination of NOT NULL and UNIQUE. Ensures that a column (or combination of two or more columns) have a unique identity which helps to find a particular record in a table more easily and quickly
+	FOREIGN KEY 			-- Ensure the referential integrity of the data in one table to match values in another table
+	CHECK 					-- Ensures that the value in a column meets a specific condition
+	DEFAULT 				-- Specifies a default value for a column
+
+-- Column constraints. Tells us what to do in case no value is passed in an insert statement
+	CREATE TABLE table1
 	(
-		SELECT column1, column2
-		FROM table1
-		WHERE column2 < '2017-01-01'
-
-		UNION ALL
-
-		SELECT column1, column2
-		FROM table2
-		WHERE column2 >= '2017-01-01'
+		column1 INT NOT NULL,
+		column2 VARCHAR(255) DEFAULT 'text'
+		column3 INT FOREIGN KEY REFERENCES table2(column3)
 	)
-	SELECT * FROM cte
 	
--- DELETE. Deleats a table
-	DELETE TABLE table1
+-- Check all foreign keys that belong to a table
+	SELECT * FROM sys.foreign_keys
+	WHERE referenced_object_id = object_id('table1')
 	
--- TRUNCATE. Clear the table of data
-	TRUNCATE TABLE table1
-	
+-- Create a foreign key
+	ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
+
 -- CHECK. Used to limit the value range that can be placed in a column or in multiple columns in a table.
 	CREATE TABLE table1
 	(
@@ -229,14 +238,6 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 		column2 varchar(255) DEFAULT 'value'
 	)
 	
--- ALTER. Change data format of a column, add a new column, delete a column or change its data type
-	ALTER TABLE table1
-	ALTER COLUMN column1 data_type
-	ALTER COLUMN column2 SET DEFAULT 'value'
-	
-	ALTER TABLE table1
-	ADD column2 data_type / DROP COLUMN column2 / ALTER COLUMN column2 data_type
-	
 -- IDENTITY. Generates a unique number when a new record is added to a table
 	CREATE TABLE table1
 	(
@@ -245,18 +246,21 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 	)
 	-- To specify that the "ID" column should start at value 10 and increment by 5, change it to IDENTITY(10,5)
 	
--- DROP. Drops a table, view, constraint, index, database.
-	DROP TABLE table1
-	
-	ALTER TABLE table1
-	DROP VIEW view1
-	
-	ALTER COLUMN column2 DROP DEFAULT
-	DROP INDEX index_name ON table1
-	
-	DROP DATABASE database1
+-- Renaming objects.
+	-- Tables
+	EXEC sp_rename 'schema1.Table1', 'Table2'
+	-- Columns
+	EXEC sp_rename 'table1.Column1' , 'Column2', 'COLUMN'
+	-- Databases
+	ALTER DATABASE Database1
+	SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+	GO
+	sp_rename 'Database1', 'Database2' ,'DATABASE';
+	GO
+	ALTER DATABASE Database2
+	SET MULTI_USER
+	GO
 
-	
 -- CREATE OR REPLACE VIEW. Creates a virtual table based on the result set of an SQL statement.
 	CREATE VIEW view1 AS
 	SELECT * FROM table1
@@ -266,7 +270,7 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 	SELECT column1, column2, column3
 	FROM table1
 	WHERE condition
-
+	
 -- The WHILE loop. Loops through an SQL statement while condition is true.
 	DECLARE @variable1
 	DECLARE @variable2
@@ -294,30 +298,13 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 	label1:
 	{...statements...}
 		
--- Cursors. Loops through each row in a table performing an SQL statement.
-	-- There are 4 types of cursors, each of wich have subtypes - static, dynamic, forward only, keyset driven
-	DECLARE @variable1 TYPE
-	
-	DECLARE cursor1 CURSOR (cursor type) FOR  
-	SELECT column1 FROM table1
-	
-	OPEN cursor1 -- open the cursor
-	FETCH NEXT FROM cursor1 INTO @variable1
-	
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-		{...statements...}
-		FETCH NEXT FROM cursor1
-		INTO @variable1
-	END
-	CLOSE cursor1 -- close the cursor
-	DEALLOCATE cursor1 -- Deallocate the cursor
-		
--- Sub queries. It is possible to use the results of the subquery as a set of data to feed into the main query
+-- Subqueries. It is possible to use the results of the subquery as a set of data to feed into the main query
 	SELECT * FROM table1
 	WHERE column1 IN
-	(SELECT column1 FROM table
-	WHERE column2 = 'value');
+	(
+		SELECT column1 FROM table
+		WHERE column2 = 'value'
+	)
 
 -- MINUS. Operates on two SELECT statements. Subtracts all the results of the second statement from the first statement. Results not present in the first statement are ignored.
 	SELECT column1 FROM table1
@@ -343,7 +330,7 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 	
 -- CASE. If, then, else logic. Else is optional.
 	-- Simple CASE.
-	SELECT CASE(column1) WHEN 'value1' THEN 'newvalue1' ELSE WHEN 'value2' THEN 'newvalue2' ELSE 'newvalue3'
+	SELECT CASE(column1) WHEN 'value1' THEN 'newvalue1' ELSE WHEN 'value2' THEN 'newvalue2' ELSE 'newvalue3' END AS 'column1'
 	FROM table1
 	
 	-- Searched CASE.
@@ -364,34 +351,7 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 	
 -- PRINT. The PRINT statement is used to return messages to applications. PRINT takes either a character or Unicode string expression as a parameter and returns the string as a message to the application
 	 PRINT 'text' + @variable1
-	
--- Stored procedures
-	-- Create
-	CREATE PROCEDURE procedure1 @variable1 nvarchar(30)
-	AS
-	SELECT * FROM table1
-	WHERE column1 = @variable1
-	GO
-	
--- Functions
-	-- Table valued functions
-	CREATE FUNCTION function (@variable1 {Data type})
-	RETURNS TABLE
-
-	AS
-	RETURN
-	(
-		SELECT * FROM Table1
-	)
-	GO
-	
-	-- Execute
-	EXEC procedure1, value1
-	
--- Dynamic SQL. Used for executing strings as SQL statements
-	EXEC ('SQL string code') -- Execute statement
-	EXEC sp_executesql N'SQL string code' -- Using a stored procedure (stores cache and speeds up subsequent queries)
-
+	 
 -- FOR XML PATH. Joins all rows of data specified from specific columns
 	SELECT ',' + Column1 + ',' + Column2 FROM table1 FOR XML PATH('')
 	
@@ -413,19 +373,160 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 	OPTION	(OPTIMIZE FOR (@string = 'Marker')) -- optimize for a particular parameter passed, making execution faster for that value, but slower for others
 	OPTION	(OPTIMIZE FOR UNKNOWN) -- ok to use for any parameter but not optimized for anything particular
 	
--- Parameter sniffing
-	-- Can assign a secondary variable to the main variable (passed to the SP) and use the secondary variable in the SP instead and see if it helps improve speed
-	
-	
+-- REPLICATE. Repeats a specified string a specified number of times.
+	SELECT REPLICATE('A', 3)
+	 
+-- CTEs - Common table expressions. Can be used to combine several tables and filter from the resulting table at the same time. Kind of similar to derived queries - SELECT * FROM (SELECT * FROM table1) AS t1
+	;
+	WITH cte AS
+	(
+		SELECT column1, column2
+		FROM table1
+		WHERE column2 < '2017-01-01'
 
+		UNION ALL
+
+		SELECT column1, column2
+		FROM table2
+		WHERE column2 >= '2017-01-01'
+	)
+	SELECT * FROM cte
+		
+-- CURSORs. Loops through each row in a table performing an SQL statement.
+	-- There are 4 types of cursors, each of wich have subtypes - static, dynamic, forward only, keyset driven
+	DECLARE @variable1 TYPE
+	
+	DECLARE cursor1 CURSOR (cursor type) FOR  
+	SELECT column1 FROM table1
+	
+	OPEN cursor1
+	FETCH NEXT FROM cursor1 INTO @variable1
+	
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		{...statements...}
+		
+		FETCH NEXT FROM cursor1
+		INTO @variable1
+	END
+	CLOSE cursor1
+	DEALLOCATE cursor1
+	
+-- STORED PROCEDUREs
+	-- Create
+	CREATE PROCEDURE procedure1 @variable1 nvarchar(30)
+	AS
+	SELECT * FROM table1
+	WHERE column1 = @variable1
+
+-- FUNCTIONs
+	-- Table valued functions
+	CREATE FUNCTION function (@variable1 {Data type})
+	RETURNS TABLE
+
+	AS
+	RETURN
+	(
+		SELECT * FROM Table1
+	)
+	
+	-- Execute
+	EXEC procedure1, value1
+	
+-- Dynamic SQL. Used for executing strings as SQL statements
+	EXEC ('SQL string code') -- Execute statement
+	EXEC sp_executesql N'SQL string code' -- Using a stored procedure (stores cache and speeds up subsequent queries)
+	
+	-- Dynamic SQL in a stored procedure
+	CREATE PROC procedure1
+	@variable1 VARCHAR(100)
+	AS
+	DECLARE @sqlCommand NVARCHAR(MAX)
+	SET @sqlCommand = N'SELECT * FROM ' + variable1
+	EXEC sp_executesql @sqlCommand
+
+	EXEC procedure1 'value'
+	
+	-- Passing parameters outside dynamic SQL
+	DECLARE @sqlCommand NVARCHAR(1000)
+	DECLARE @city VARCHAR(75)
+	DECLARE @quantity int
+	SET @city = 'London'
+	SET @sqlCommand = 'SELECT @quantity=COUNT(*) FROM customers WHERE City = @city'
+	EXECUTE sp_executesql @sqlCommand, N'@city NVARCHAR(75)', @city = @city
+	RETURN @quantity
+	
+-- TRIGGERs (simple)
+	-- CREATE. After creating a record
+	CREATE TRIGGER trigger_insert
+	   ON table1
+	   AFTER INSERT
+	AS 
+	BEGIN
+		SET NOCOUNT ON;
+
+		INSERT INTO table2
+		SELECT * FROM table1
+	END
+	GO
+	
+	-- DELETE. After deleting a record
+	ALTER TRIGGER trigger_delete
+	   ON table1
+	   FOR DELETE
+	AS 
+	BEGIN
+		SET NOCOUNT ON;
+
+		DELETE FROM table2
+		WHERE column1 = (SELECT column1 FROM DELETED) -- delete by primary key, should be good enough
+	END
+	GO
+	
+	-- UPDATE. After updating a record
+	CREATE TRIGGER trigger_update
+	   ON table1
+	   AFTER UPDATE
+	AS 
+	BEGIN
+		SET NOCOUNT ON;
+
+		DECLARE @PK VARCHAR(100)
+		SELECT @PK = (SELECT PK_Column FROM INSERTED)
+
+		UPDATE table2
+		SET PK_Column = new.PK_Column,
+			column2 = new.column2
+		FROM table1 AS original
+		INNER JOIN INSERTED AS new
+		ON original.PK_Column = new.PK_Column
+		WHERE old.PK_Column = @PK
+	END
+	GO
+
+	
+	
 				--========== SYSTEM COMMANDS ==========--
+				
+-- Fix a database stuck in restoring state.
+	RESTORE DATABASE DB1 WITH RECOVERY
+				
+-- sp_addlinkedserver. Add a liked serves to the current server.
+	EXEC sp_addlinkedserver     
+		@server=N'S1_instance1', -- Name of linked server
+		@srvproduct=N'', -- product name of the OLE DB data source to add as a linked server
+		@provider=N'SQLNCLI', -- Is the unique programmatic identifier (PROGID) of the OLE DB provider that corresponds to this data source
+		@datasrc=N'S1\instance1' -- Is the name of the data source as interpreted by the OLE DB provider.
 	
 -- sp_send_dbmail. Send emails with queries or attachments.
 	EXEC msdb.dbo.sp_send_dbmail 
-	@recipients='email',
-	@subject = 'text',
-	@body_format = 'HTML',
-	@body = @query_text
+		@recipients='email',
+		@subject = 'text',
+		@body_format = 'HTML',
+		@body = @query_text
+		
+-- DBCC OPENTRAN. Reset identity seed of a table
+DBCC OPENTRAN
 	
 -- Search for a particular table in a database
 	SELECT * FROM sys.Tables WHERE name LIKE '%table1%'
@@ -436,86 +537,25 @@ ALTER TABLE table1 ADD FOREIGN KEY (column1) REFERENCES table2(column1)
 	DECLARE @kill VARCHAR(8000) = '';  
 	SELECT @kill = @kill + 'kill ' + CONVERT(VARCHAR(5), session_id) + ';'  
 	FROM sys.dm_exec_sessions
-	WHERE database_id  = db_id('FGBTA_Padres_SuiteTA')
+	WHERE database_id  = db_id('Database1')
 
 	EXEC(@kill);
 
--- Display all jobs
-select 
- j.name as 'JobName',
- run_date,
- run_time,
- msdb.dbo.agent_datetime(run_date, run_time) as 'RunDateTime'
-From msdb.dbo.sysjobs j 
-INNER JOIN msdb.dbo.sysjobhistory h 
- ON j.job_id = h.job_id 
-where j.enabled = 1  --Only Enabled Jobs
---order by JobName, RunDateTime desc
+-- Schedule information for jobs to be executed by SQL Server Agent.
+	SELECT * FROM dbo.sysjobschedules
 
--- sysjobschedules
+-- DBCC CHECKIDENT. Sets the next seed value of a table's identity to the specified numer. Example: table has 10 rows with the last having number 10, and we want the next row to have a value different to 11
+	DBCC CHECKIDENT (table1, reseed, 0)
 
--- Job last run and status info
-USE msdb
-GO
-SELECT DISTINCT SJ.Name AS JobName, SJ.description AS JobDescription,
-SJH.run_date AS LastRunDate, 
-CASE SJH.run_status 
-WHEN 0 THEN 'Failed'
-WHEN 1 THEN 'Successful'
-WHEN 3 THEN 'Cancelled'
-WHEN 4 THEN 'In Progress'
-END AS LastRunStatus
-FROM sysjobhistory SJH, sysjobs SJ
-WHERE SJH.job_id = SJ.job_id and SJH.run_date = 
-(SELECT MAX(SJH1.run_date) FROM sysjobhistory SJH1 WHERE SJH.job_id = SJH1.job_id)
---AND SJ.Name LIKE 'Populate NFLTicketing_Information%'
-ORDER BY SJH.run_date desc
-	
-	
-	
-				--========== GLOBAL VARIABLES ==========--
--- @@CONNECTIONS. The number of logins or attempted logins since SQL Server was last started.
-	SELECT GETDATE() AS 'Today''s Date and Time', @@CONNECTIONS AS 'Login Attempts'
--- @@MAX_CONNECTIONS. The maximum number of simultaneous connections that can be made with SQL Server in this computer environment. The user can configure SQL Server for any number of connections less than or equal to the value of @@max_connections with sp_configure ''number of user connections''. 
-	SELECT @@MAX_CONNECTIONS AS 'Max Connections'
--- @@CPU_BUSY. The amount of time, in ticks, that the CPU has spent doing SQL Server work since the last time SQL Server was started.
-	SELECT @@CPU_BUSY * CAST(@@TIMETICKS AS FLOAT) AS 'CPU microseconds', GETDATE() AS 'As of' ;
--- @@ERROR. Commonly used to check the error status (succeeded or failed) of the most recently executed statement. It contains 0 if the previous transaction succeeded; otherwise, it contains the last error number generated by the system. A statement such as:
-	IF @@ERROR <> 0 PRINT  'Your error message';
--- @@IDENTITY. The last value inserted into an IDENTITY (primary key) column by an insert or select into statement. @@identity is reset each time a row is inserted into a table. If a statement inserts multiple rows, @@identity reflects the IDENTITY value for the last row inserted. If the affected table does not contain an IDENTITY column, @@identity is set to 0. The value of @@identity is not affected by the failure of an insert or select into statement, or the rollback of the transaction that contained it. @@identity retains the last value inserted into an IDENTITY column, even if the statement that inserted it fails to commit.
-	{...Insert statement...}
-	SELECT @@IDENTITY AS 'Identity';
--- @@IDLE. The amount of time, in ticks, that SQL Server has been idle since it was last started.
-	SELECT @@IDLE * CAST(@@TIMETICKS AS float) AS 'Idle microseconds', GETDATE() AS 'as of'
--- @@IO_BUSY. The amount of time, in ticks, that SQL Server has spent doing input and output operations since it was last started.
-	SELECT @@IO_BUSY*@@TIMETICKS AS 'IO microseconds', GETDATE() AS 'as of'
--- @@LANGID. The local language id of the language currently in use (specified in syslanguages.langid).
-	SET LANGUAGE 'us_english' SELECT @@LANGID AS 'Language ID'
--- @@LANGUAGE. The name of the language currently in use (specified in syslanguages.name).
-	SELECT @@LANGUAGE AS 'Language Name';
--- @@MAXCHARLEN. The maximum length, in bytes, of a character in SQL Server's default character set.
-	SELECT @@MAX_PRECISION AS 'Max Precision'
--- @@PACK_RECEIVED. The number of input packets read by SQL Server since it was last started.
-	SELECT @@PACK_RECEIVED AS 'Packets Received'
--- @@PACK_SENT. The number of output packets written by SQL Server since it was last started.
-	SELECT @@PACK_SENT AS 'Pack Sent'
--- @@PACKET_ERRORS. The number of errors that have occurred while SQL Server was sending and receiving packets.
-	SELECT @@PACKET_ERRORS AS 'Packet Errors'
--- @@ROWCOUNT  
--- @@SERVERNAME. Returns the current server name
-	SELECT @@SERVERNAME AS 'Server name'
--- @@SPID
--- @@TEXTSIZE 
--- @@TIMETICKS
--- @@TOTAL_ERRORS
--- @@TOTAL_READ / @@TOTAL_WRITE
--- @@TRANCOUNT
--- @@VERSION  
+-- RAISERROR. Breaks code execution and throws a custom error.
+	RAISERROR ({Error message}, {Error severity number}, {State number})
 
 
 
-	
 				--========== FUNCTIONS ==========--
+-- DB_NAME() - Display name of the current database
+	SELECT DB_NAME()				
+
 -- Date functions
 	GETDATE() - Returns the current date and time
 	YEAR() - Returns the year part of a date
@@ -565,11 +605,7 @@ ORDER BY SJH.run_date desc
 							127				yyyy-mm-ddThh:mi:ss.mmmZ			ISO8601 (with time zone Z)
 							130				dd mon yyyy hh:mi:ss:mmmAM			Hijiri
 							131				dd/mm/yy hh:mi:ss:mmmAM				Hijiri
-	
--- EOMONTH. Returns the last day of a month.
-	DECLARE @Date1 datetime
-	SET @Date1 = '04/27/2014'
-	SELECT EOMONTH (@Date1)
+
 	
 -- AVG. Returns the average value of a numeric string
 	SELECT AVG(column1) AS 'Col1Sum' FROM table1
@@ -587,6 +623,30 @@ ORDER BY SJH.run_date desc
 	
 -- SUM. Returns the total sum of a numeric column
 	SELECT SUM(column1) FROM table1
+	
+-- WITH ROLLUP. ROLLUP operators let you extend the functionality of GROUP BY clauses by calculating subtotals and grand totals for a set of columns.
+	SELECT ISNULL(CAST(column1 AS VARCHAR(5)), 'Total'), COUNT(*)
+	FROM table1
+	GROUP BY CAST(ta_gamenumber AS VARCHAR(5))
+	WITH ROLLUP
+
+-- WITH CUBE. The CUBE operator is similar in functionality to the ROLLUP operator; however, the CUBE operator can calculate subtotals and grand totals for all permutations of the columns specified in it.
+	SELECT ISNULL(CAST(column1 AS VARCHAR(5)), 'Total'), column2, COUNT(*)
+	from TA
+	FROM table1
+	GROUP BY CAST(ta_gamenumber AS VARCHAR(5)), column2
+	WITH CUBE
+	
+-- EOMONTH. Returns the last day of a month.
+	DECLARE @Date1 datetime
+	SET @Date1 = '04/27/2014'
+	SELECT EOMONTH (@Date1)
+	
+-- LAG(). Allows returning a record in a table that belongs to the previous row than the one being queried. Eliminates the need to join the table on itself. The offset, default value out of bounds and partitioning is optional.
+	SELECT LAG(Column1, {offset}, {default value out of bounds}) OVER (PARTITION BY Column2 ORDER BY Column3), Column1 from Table1
+	
+-- LEAD(). Allows returning a record in a table that belongs to the next row than the one being queried. Eliminates the need to join the table on itself. The offset, default value out of bounds and partitioning is optional.
+	SELECT LEAD(Column1, {offset}, {default value out of bounds}) OVER (PARTITION BY Column2 ORDER BY Column3), Column1 from Table1
 	
 -- GROUP BY. Used together with aggregate functions to group results by one or more columns
 	SELECT column1, aggregate_function(column1)
@@ -627,6 +687,9 @@ ORDER BY SJH.run_date desc
 	
 -- ISNULL. Treating null values as something else (for mathematical purposes)
 	ISNULL(column1,value)
+	
+-- COALESCE - Return the first non-null expression in a list:
+	SELECT COALESCE(NULL, NULL, NULL, 'text1', NULL, 'text2')
 
 -- REPLACE. Replaces a specified string in a particular column with another specified string.
 	REPLACE(column1, 'text to replace', 'new text')
@@ -636,9 +699,6 @@ ORDER BY SJH.run_date desc
 	
 -- HASHBYTES - generates hash from an input
 	HASHBYTES({hashing algorithm}, string1)
-	
--- DBCC CHECKIDENT. Sets the next seed value of a table's identity to the specified numer. Example: table has 10 rows with the last having number 10, and we want the next row to have a value different to 11
-	DBCC CHECKIDENT (table1, reseed, 0)
 
 -- Window functions, ranking
 	--ROW_NUMBER() assigns unique numbers to each row within the PARTITION given the ORDER BY clause. Use 'OVER(ORDER BY (SELECT ''))' in order to rank data in exact same order as it was previoustly
@@ -723,9 +783,6 @@ ORDER BY SJH.run_date desc
 		 ,ERROR_MESSAGE() AS ErrorMessage;
 	END CATCH
 	
--- RAISERROR. Breaks code execution and throws a custom error.
-	RAISERROR ({Error message}, {Error severity number}, {State number})
-	
 -- PIVOT / UNPIVOT. Transforms rows into columns / columns into rows. 
 	SELECT * FROM
 	(
@@ -764,36 +821,64 @@ ORDER BY SJH.run_date desc
 -- NOLOCK. Releases queried information without locking the database (waiting for other users to finish updating data)
 	SELECT * FROM table1 WITH (NOLOCK)	
 	
+-- Object dependencies
+	-- GUI
+		-- Right-click on a table, click 'View dependencies'. This will show what stored procedures call a particular table
+	-- sp_depends 'object'
+		sp_depends 'table'
 	
-	
-	
-	
-	
-	
-				--========== SQL SERVER GUI ==========--
--- TABLE DEPENDENCIES
--- Right-click on a table, click 'View dependencies'. This will show what stored procedures call a particular table
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+-- Schema information
+	-- Tables containing column information
+		INFORMATION_SCHEMA.COLUMNS
+		sys.columns
 
 
-	
-	
-	
-	
-	
-	
-	
-	
+
+				--========== GLOBAL VARIABLES ==========--
+-- @@CONNECTIONS. The number of logins or attempted logins since SQL Server was last started.
+	SELECT GETDATE() AS 'Today''s Date and Time', @@CONNECTIONS AS 'Login Attempts'
+-- @@MAX_CONNECTIONS. The maximum number of simultaneous connections that can be made with SQL Server in this computer environment. The user can configure SQL Server for any number of connections less than or equal to the value of @@max_connections with sp_configure ''number of user connections''. 
+	SELECT @@MAX_CONNECTIONS AS 'Max Connections'
+-- @@CPU_BUSY. The amount of time, in ticks, that the CPU has spent doing SQL Server work since the last time SQL Server was started.
+	SELECT @@CPU_BUSY * CAST(@@TIMETICKS AS FLOAT) AS 'CPU microseconds', GETDATE() AS 'As of' ;
+-- @@ERROR. Commonly used to check the error status (succeeded or failed) of the most recently executed statement. It contains 0 if the previous transaction succeeded; otherwise, it contains the last error number generated by the system. A statement such as:
+	IF @@ERROR <> 0 PRINT  'Your error message';
+-- @@IDENTITY. The last value inserted into an IDENTITY (primary key) column by an insert or select into statement. @@identity is reset each time a row is inserted into a table. If a statement inserts multiple rows, @@identity reflects the IDENTITY value for the last row inserted. If the affected table does not contain an IDENTITY column, @@identity is set to 0. The value of @@identity is not affected by the failure of an insert or select into statement, or the rollback of the transaction that contained it. @@identity retains the last value inserted into an IDENTITY column, even if the statement that inserted it fails to commit.
+	{...Insert statement...}
+	SELECT @@IDENTITY AS 'Identity';
+-- @@IDLE. The amount of time, in ticks, that SQL Server has been idle since it was last started.
+	SELECT @@IDLE * CAST(@@TIMETICKS AS float) AS 'Idle microseconds', GETDATE() AS 'as of'
+-- @@IO_BUSY. The amount of time, in ticks, that SQL Server has spent doing input and output operations since it was last started.
+	SELECT @@IO_BUSY*@@TIMETICKS AS 'IO microseconds', GETDATE() AS 'as of'
+-- @@LANGID. The local language id of the language currently in use (specified in syslanguages.langid).
+	SET LANGUAGE 'us_english' SELECT @@LANGID AS 'Language ID'
+-- @@LANGUAGE. The name of the language currently in use (specified in syslanguages.name).
+	SELECT @@LANGUAGE AS 'Language Name';
+-- @@MAXCHARLEN. The maximum length, in bytes, of a character in SQL Server's default character set.
+	SELECT @@MAX_PRECISION AS 'Max Precision'
+-- @@PACK_RECEIVED. The number of input packets read by SQL Server since it was last started.
+	SELECT @@PACK_RECEIVED AS 'Packets Received'
+-- @@PACK_SENT. The number of output packets written by SQL Server since it was last started.
+	SELECT @@PACK_SENT AS 'Pack Sent'
+-- @@PACKET_ERRORS. The number of errors that have occurred while SQL Server was sending and receiving packets.
+	SELECT @@PACKET_ERRORS AS 'Packet Errors'
+-- @@ROWCOUNT  
+-- @@SERVERNAME. Returns the current server name
+	SELECT @@SERVERNAME AS 'Server name'
+-- @@SPID
+-- @@TEXTSIZE 
+-- @@TIMETICKS
+-- @@TOTAL_ERRORS
+-- @@TOTAL_READ / @@TOTAL_WRITE
+-- @@TRANCOUNT
+-- @@VERSION  
+
+
+
 				--========== OTHER ==========--
+-- Parameter sniffing
+	-- Can assign a secondary variable to the main variable (passed to the SP) and use the secondary variable in the SP instead and see if it helps improve speed
+	
 -- Best practices
 	Type SQL commands in upper case
 	For draft SQL code use lower case for speed and distinguishing it from tested code
@@ -852,18 +937,6 @@ ORDER BY SJH.run_date desc
 	Lookup Wizard			-- Let you type a list of options, which can then be chosen from a drop-down list	4 bytes
 
 
-
-	
-	
-	
-				--========== SCHEMA INFORMATION ==========--
-				
--- Tables containing column information
-	INFORMATION_SCHEMA.COLUMNS
-	sys.columns
-	
-
-	
 	
 				--========== CUSTOM SCRIPTS ==========--
 -- Create a column in a table if it doesn't exist
@@ -912,40 +985,60 @@ ORDER BY SJH.run_date desc
 			ON t1.ID = t2.ID
 	(SELECT DISTINCT ID, Column2 FROM @table1 WHERE Column2 != '') AS t3
 			ON t1.ID = t3.ID
-			
--- Dynamic SQL in a stored procedure
-	CREATE PROC procedure1
-	(
-		@variable1
-	)
-	AS
-	BEGIN
-		DECLARE @sql_string NVARCHAR(MAX)
-		SET @sql_string = N'SELECT * FROM ' + variable1
-		EXEC sp_executesql @sql_string
-	END
-	
-	EXEC procedure1 'value'
 	
 -- Random number generation
 	ABS(CHECKSUM(NEWID())) %number1
 	-- Between 1 and 10
 	SELECT FLOOR(RAND() * (10 + 1));
 	
-	
-	
-	
+-- Display all jobs
+	SELECT 
+	 j.name AS 'JobName',
+	 run_date,
+	 run_time,
+	 msdb.dbo.agent_datetime(run_date, run_time) AS 'RunDateTime'
+	FROM msdb.dbo.sysjobs j 
+	INNER JOIN msdb.dbo.sysjobhistory h 
+		ON j.job_id = h.job_id 
+	WHERE j.enabled = 1  --Only Enabled Jobs
+	--order by JobName, RunDateTime desc
 
+-- Job last run and status info
+	USE msdb
+	GO
+	SELECT DISTINCT SJ.Name AS JobName, SJ.description AS JobDescription,
+	SJH.run_date AS LastRunDate, 
+	CASE SJH.run_status 
+	WHEN 0 THEN 'Failed'
+	WHEN 1 THEN 'Successful'
+	WHEN 3 THEN 'Cancelled'
+	WHEN 4 THEN 'In Progress'
+	END AS LastRunStatus
+	FROM sysjobhistory SJH, sysjobs SJ
+	WHERE SJH.job_id = SJ.job_id and SJH.run_date = 
+	(SELECT MAX(SJH1.run_date) FROM sysjobhistory SJH1 WHERE SJH.job_id = SJH1.job_id)
+	--AND SJ.Name LIKE 'Populate NFLTicketing_Information%'
+	ORDER BY SJH.run_date desc
+
+	
 
 				--========== CUSTOM FUCNTIONS ==========--
+DECLARE @DynamicTable NVARCHAR(MAX); SET @DynamicTable = '<!DOCTYPE html><html><head><style>table {border-collapse: collapse;}table, th, td {border: 0.5px solid black;}</style></head><body>'SET @DynamicTable = @DynamicTable + '<table><h1>WEB_Disputes<h1><tr>'+'<th>DisputeID</th>'+'<th>Message</th>'+'<th>Enum</th>'+'<th>LogDate</th>'+'</tr>'+
+isnull(CAST(( 
+SELECT 
+	td = ISNULL(CAST(DisputeID AS VARCHAR(100)), ''),'', 
+	td = ISNULL(CAST(Message AS VARCHAR(100)), ''),'', 
+	td = ISNULL(CAST(Enum AS VARCHAR(100)), ''),'', 
+	td = ISNULL(CAST(LogDate AS VARCHAR(100)), ''),'' FROM WEB_Disputes 
+WHERE Enum = 5044 FOR XML PATH('tr'), TYPE
+) AS NVARCHAR(MAX)), '')+'</table>'+'</body></html>'; 
+
+SELECT @DynamicTable
 
 
 
 				--========== KNOWN ISSUES ==========--
 -- NOT IN - the not in operator fails when filtering a list of strings that contains a NULL. Make sure to exclude any nulls inside a NOT IN
-	
-	
-	
 	
 	
 
@@ -970,5 +1063,10 @@ https://www.w3schools.com/sql/func_sqlserver_convert.asp
 https://blog.jooq.org/2016/04/25/10-sql-tricks-that-you-didnt-think-were-possible/
 https://www.mssqltips.com/sqlservertip/3000/use-sql-servers-unpivot-operator-to-help-normalize-output/
 https://blogs.msdn.microsoft.com/robinlester/2016/08/10/improving-query-performance-with-option-recompile-constant-folding-and-avoiding-parameter-sniffing-issues/
+https://docs.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-addlinkedserver-transact-sql?view=sql-server-2017
+https://www.techonthenet.com/sql_server/functions/lag.php
+https://www.techonthenet.com/sql_server/functions/lead.php
+http://www.sqlservercentral.com/articles/T-SQL/163572/
+https://docs.microsoft.com/en-us/sql/relational-databases/system-tables/dbo-sysjobschedules-transact-sql?view=sql-server-2017
 
 Author: Konstantin Pokhilchuk
